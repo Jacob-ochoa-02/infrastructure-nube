@@ -1,0 +1,23 @@
+version: 0.2
+
+phases:
+    install:
+        commands:
+            - sudo yum install -y yum-utils shadow-utils
+            - sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+            - sudo yum install -y terraform
+            - terraform version
+    build:
+        commands:
+            - cd infra
+            - echo "Inicializando terraform......"
+            - terraform init -input=false
+            - echo "Validando formato......."
+            - terraform plan -out=tfplan-var-file-env/dev.tfvars
+            - echo "Validando configuración....."
+            - terraform show -no-color tfplan > tfplan.txt
+
+artifacts:
+    files:
+        - infra/tfplan
+        - infra/tfplan.txt
