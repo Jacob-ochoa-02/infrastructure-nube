@@ -9,15 +9,14 @@ phases:
             - terraform version
     build:
         commands:
-            - cd infra
-            - echo "Inicializando terraform......"
-            - terraform init -input=false
-            - echo "Validando formato......."
-            - terraform plan -out=tfplan -var-file=env/dev.tfvars
-            - echo "Validando configuración....."
-            - terraform show -no-color tfplan > tfplan.txt
+             - cd infra
+             - terraform init -input=false
+             - terraform fmt -recursive
+             - terraform validate
+             - terraform plan -out=tfplan -var-file=env/dev.tfvars
+             - terraform apply -auto-approve tfplan
 
 artifacts:
     files:
-        - 
+        - infra/tfplan
         - infra/tfplan.txt
