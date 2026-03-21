@@ -9,7 +9,13 @@ phases:
             - terraform version
     build:
         commands:
-            - echo "Fase de build"
+            - cd infra
+            - echo "Inicializando terraform......"
+            - terraform init -input=false
+            - echo "Validando formato......."
+            - terraform fmt -check -recursive
+            - echo "Validando configuración....."
+            - terraform validate
 
 artifacts:
     files:
