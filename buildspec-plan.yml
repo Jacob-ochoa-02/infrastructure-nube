@@ -13,7 +13,7 @@ phases:
             - echo "Inicializando terraform......"
             - terraform init -input=false
             - echo "Validando formato......."
-            - terraform plan -out=tfplan-var-file-env/dev.tfvars
+            - terraform plan -out=tfplan -var-file-env/dev.tfvars
             - echo "Validando configuración....."
             - terraform show -no-color tfplan > tfplan.txt
 
