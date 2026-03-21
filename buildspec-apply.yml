@@ -11,6 +11,7 @@ phases:
         commands:
             - cd infra
             - echo "Inicializando terraform......"
+            - cp "$CODEBUILD_SRC_DIR_Plan/infra/tfplan" ./tfplan
             - terraform init -input=false
             - echo "Aplicando plan de terraform......."
             - terraform apply -auto-approve tfplan
