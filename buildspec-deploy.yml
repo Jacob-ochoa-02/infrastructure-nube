@@ -1,0 +1,42 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - echo "Instalando Angular CLI..."
+      - npm install -g @angular/cli
+      - cd sitioweb
+      - npm ci
+
+  build:
+    commands:
+      - cd sitioweb
+      - echo "Construyendo aplicación Angular..."
+      - ng build --configuration production
+      # ng build genera los archivos en dist/<nombre-proyecto>/browser (Angular 17+)
+      # o en dist/<nombre-proyecto> (Angular 16 y anteriores)
+      - echo "Build completado"
+
+  post_build:
+    commands:
+      - echo "Obteniendo nombre del bucket desde Terraform output..."
+      - BUCKET_NAME=$(aws ssm get-parameter --name "/jol/bucket_name" --query "Parameter.Value" --output text)
+      # Alternativa si no usas SSM: reemplaza $BUCKET_NAME por el nombre directamente
+      # BUCKET_NAME="nombre-de-tu-bucket"
+      - echo "Sincronizando archivos al bucket $BUCKET_NAME..."
+      # Ajusta la ruta dist/ según tu nombre de proyecto Angular
+      - DIST_DIR=$(find dist -mindepth 2 -maxdepth 2 -name "browser" -type d 2>/dev/null | head -1)
+      - |
+        if [ -z "$DIST_DIR" ]; then
+          DIST_DIR=$(find dist -mindepth 1 -maxdepth 1 -type d | head -1)
+        fi
+      - echo "Directorio de distribución: $DIST_DIR"
+      - aws s3 sync "$DIST_DIR" "s3://$BUCKET_NAME" --delete --exact-timestamps
+      - echo "Deploy completado exitosamente"
+      - echo "URL del sitio: http://$BUCKET_NAME.s3-website-us-east-1.amazonaws.com"
+
+artifacts:
+  files:
+    - '**/*'
