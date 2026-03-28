@@ -2,31 +2,37 @@ version: 0.2
 
 env:
   variables:
-    APP_DIR: "sitioweb"
+    # Reemplaza el valor de BUCKET_NAME en la consola de CodeBuild
+    # Project → Edit → Environment → Additional configuration → Environment variables
+    BUCKET_NAME: "REEMPLAZAR_CON_NOMBRE_DEL_BUCKET"
 
 phases:
   install:
     runtime-versions:
       nodejs: 20
     commands:
+      - echo "=== PWD en INSTALL ==="
+      - pwd
+      - ls -la
       - echo "Instalando Angular CLI..."
       - npm install -g @angular/cli
       - echo "Instalando dependencias..."
+      - APP_DIR=$(find . -name "angular.json" -not -path "*/node_modules/*" | head -1 | xargs dirname)
+      - echo "App Angular encontrada en $APP_DIR"
       - cd "$APP_DIR" && npm ci
 
   build:
     commands:
-      - echo "Construyendo aplicacion Angular..."
+      - echo "=== PWD en BUILD ==="
+      - pwd
+      - APP_DIR=$(find . -name "angular.json" -not -path "*/node_modules/*" | head -1 | xargs dirname)
+      - echo "Construyendo en $APP_DIR..."
       - cd "$APP_DIR" && ng build --configuration production
       - echo "Build completado"
-      - echo "=== Contenido de dist ==="
-      - ls "$APP_DIR/dist"
 
   post_build:
     commands:
-      - echo "Obteniendo nombre del bucket..."
-      - BUCKET_NAME=$(aws ssm get-parameter --name "/jol/bucket_name" --query "Parameter.Value" --output text)
-      - echo "Buscando directorio de distribucion..."
+      - APP_DIR=$(find . -name "angular.json" -not -path "*/node_modules/*" | head -1 | xargs dirname)
       - DIST_DIR=$(find "$APP_DIR/dist" -mindepth 2 -maxdepth 2 -name "browser" -type d 2>/dev/null | head -1)
       - DIST_DIR=$(if [ -z "$DIST_DIR" ]; then find "$APP_DIR/dist" -mindepth 1 -maxdepth 1 -type d | head -1; else echo "$DIST_DIR"; fi)
       - echo "Sincronizando $DIST_DIR hacia s3://$BUCKET_NAME..."
