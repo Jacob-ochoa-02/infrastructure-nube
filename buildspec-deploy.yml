@@ -4,7 +4,7 @@ env:
   variables:
     # Reemplaza el valor de BUCKET_NAME en la consola de CodeBuild
     # Project → Edit → Environment → Additional configuration → Environment variables
-    BUCKET_NAME: "REEMPLAZAR_CON_NOMBRE_DEL_BUCKET"
+    BUCKET_NAME: "jol-ejemplo-terraform"
 
 phases:
   install:
