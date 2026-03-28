@@ -1,38 +1,14 @@
 version: 0.2
-
-env:
-  variables:
-    APP_DIR: "sitioweb"
-
+ 
 phases:
   install:
     runtime-versions:
       nodejs: 20
     commands:
-      - echo "Instalando Angular CLI..."
-      - npm install -g @angular/cli
-      - echo "Instalando dependencias..."
-      - cd "$APP_DIR" && npm ci
-
-  build:
-    commands:
-      - echo "Construyendo aplicacion Angular..."
-      - cd "$APP_DIR" && ng build --configuration production
-      - echo "Build completado"
-      - ls "$APP_DIR/dist"
-
-  post_build:
-    commands:
-      - echo "Obteniendo nombre del bucket..."
-      - BUCKET_NAME=$(aws ssm get-parameter --name "/jol/bucket_name" --query "Parameter.Value" --output text)
-      - echo "Buscando directorio de distribucion..."
-      - DIST_DIR=$(find "$APP_DIR/dist" -mindepth 2 -maxdepth 2 -name "browser" -type d 2>/dev/null | head -1)
-      - DIST_DIR=$(if [ -z "$DIST_DIR" ]; then find "$APP_DIR/dist" -mindepth 1 -maxdepth 1 -type d | head -1; else echo "$DIST_DIR"; fi)
-      - echo "Directorio de distribucion encontrado $DIST_DIR"
-      - aws s3 sync "$DIST_DIR" "s3://$BUCKET_NAME" --delete --exact-timestamps
-      - echo "Deploy completado"
-      - echo "URL del sitio http://$BUCKET_NAME.s3-website-us-east-1.amazonaws.com"
-
-artifacts:
-  files:
-    - '**/*'
+      - echo "=== DIRECTORIO DE TRABAJO ==="
+      - pwd
+      - echo "=== CONTENIDO RAIZ ==="
+      - ls -la
+      - echo "=== ARBOL COMPLETO (2 niveles) ==="
+      - find . -maxdepth 2 -not -path '*/.git/*' -not -name '.git'
+      - echo "=== FIN DIAGNOSTICO ==="
