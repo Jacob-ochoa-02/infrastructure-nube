@@ -1,5 +1,9 @@
 version: 0.2
 
+env:
+  variables:
+    APP_DIR: "sitioweb"
+
 phases:
   install:
     runtime-versions:
@@ -7,23 +11,23 @@ phases:
     commands:
       - echo "Instalando Angular CLI..."
       - npm install -g @angular/cli
-      - cd sitioweb
-      - npm ci
+      - echo "Instalando dependencias..."
+      - cd "$APP_DIR" && npm ci
 
   build:
     commands:
-      - cd sitioweb
       - echo "Construyendo aplicacion Angular..."
-      - ng build --configuration production
+      - cd "$APP_DIR" && ng build --configuration production
       - echo "Build completado"
+      - ls "$APP_DIR/dist"
 
   post_build:
     commands:
       - echo "Obteniendo nombre del bucket..."
       - BUCKET_NAME=$(aws ssm get-parameter --name "/jol/bucket_name" --query "Parameter.Value" --output text)
       - echo "Buscando directorio de distribucion..."
-      - DIST_DIR=$(find sitioweb/dist -mindepth 2 -maxdepth 2 -name "browser" -type d 2>/dev/null | head -1)
-      - DIST_DIR=$(if [ -z "$DIST_DIR" ]; then find sitioweb/dist -mindepth 1 -maxdepth 1 -type d | head -1; else echo "$DIST_DIR"; fi)
+      - DIST_DIR=$(find "$APP_DIR/dist" -mindepth 2 -maxdepth 2 -name "browser" -type d 2>/dev/null | head -1)
+      - DIST_DIR=$(if [ -z "$DIST_DIR" ]; then find "$APP_DIR/dist" -mindepth 1 -maxdepth 1 -type d | head -1; else echo "$DIST_DIR"; fi)
       - echo "Directorio de distribucion encontrado $DIST_DIR"
       - aws s3 sync "$DIST_DIR" "s3://$BUCKET_NAME" --delete --exact-timestamps
       - echo "Deploy completado"
